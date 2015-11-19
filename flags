@@ -1,0 +1,13 @@
+-O3
+-std=c++14
+-stdlib=libc++
+-lc++abi
+-Wl,-rpath=/home/chandlerc/lib64
+-fno-exceptions
+-fno-rtti
+-Wall
+-pedantic
+-Werror
+-isystem /home/chandlerc/include
+-pthreads
+-fno-omit-frame-pointer

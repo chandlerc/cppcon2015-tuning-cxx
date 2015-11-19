@@ -1,0 +1,64 @@
+- benchmark push_back, creating the vector inside the benchmark loop
+
+- build, showing flags, remember to link the benchmark library. run it.
+
+- We're benchmarking a lot more than push_back
+
+- pull out a create benchmark, unsurprisingly that part is free
+
+- what else is there? oh, we're growing the vector. let's pull that apart with reserve. add a reserve benchmark and explicitly reserve in the push_back
+
+- observe that pushback is now 10x faster!!! how can this be? comment out reserve and reproduce. wtf?
+
+- when you (inevitably) hit something that doesn't make sense, you need to go in with a profiler to understand
+
+-- let's introduce perf -- MUST go back to the version without reserve!
+
+- run it under perf stat, and explain what perf is doing
+
+- run it under perf record to collect a specific profile rather than just statistics
+
+- run perf report and show the lack of context
+
+- run it under perf record -g, and run perf report to show call graph
+
+- point out that call graph is terrible, explain that it can't unwind the stack
+
+- add -fno-omit-frame-pointer to flags file and recompile
+
+- run it under perf record -g, and run perf report to actually show call graph, but show really confusing callee orientation and relative %s
+
+- run it perf report -g 'graph,0.5,caller' to get the inverted and absolute call graph view
+
+- annotate a function in perf report, show control flow indicators, etc
+
+-- back to benchmarking
+
+- show in the annotate view the empty loop, that's why its fast, the compiler deleted all the code!
+
+- we need to block the optimizer from deleting our code
+
+- introduce an escape and a clobber function with inline asm
+
+- mention that we want to escape as little as possible
+
+- show the profile of the correctly benchmarked push_back, and kibitz about how terrible the optimizer is
+
+-- switch to benchmarking the "fastmod"
+
+- walk through new benchmark, run it, note no performance difference with different mods
+- profile and look to see that no samples on the modulo branch, code shows we fill with zeros
+- std::mt19937, seed, uniform_int_distribution<int>, generate
+
+- note unrolling done by LLVM -- 2 is good, 4 is great?
+- show the jumping from block to block, lots of icache for a few insts
+
+- add an UNLIKELY macro, do bool conversion, explain expect
+- show LLVM collecting the cold modulo code below the hot loop trace
+- even with unlikely, not all rosy
+
+- but why on earth are we doing this? we should just use mod
+- no, we should *measure* mod!
+- wait, what?!?!?! its sometimes slower, sometimes faster?
+
+- note that when its faster...
